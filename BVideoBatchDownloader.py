@@ -49,8 +49,8 @@ def single_data(url):
         audio_url = data['data']['dash']['audio'][0]['baseUrl']
         video_queue.put([video_url, audio_url, ptitle])
     except KeyError:
-        time = data['data']['timelength'] // 1000  # 我发现其实有些小视频的格式是不一样的，，，
-        minute = int(time) // 60  # 这种就是一个视频，不用合并音频，，视频啥的了。。
+        time = data['data']['timelength'] // 1000
+        minute = int(time) // 60
         second = int(time) % 60
         video_url = data['data']['durl'][0]['url']
         video_queue.put([video_url, ptitle])
@@ -105,7 +105,7 @@ def download():
             video_audio_merge(data[2])
         else:
             data[1] = re.sub(r'[\\/:\*\?<>\|"]', '', data[1])
-            with open('%s_video.mp4' % data[1], 'wb') as f:  # 只有视频部分
+            with open('%s_video.mp4' % data[1], 'wb') as f:
                 resp = requests.get(data[0], headers=headers)
                 f.write(resp.content)
                 print('%s下载完成' % data[1])
@@ -113,13 +113,11 @@ def download():
 
 # 定义将视频和音频合并的函数(需要调用ffmpeg程序)
 def video_audio_merge(video_name):
-    # print("视频合成开始：%s" % video_name)
     command = 'ffmpeg -i "%s_video.mp4" -i \
         "%s_audio.mp4" -c copy "%s.mp4" -y \
             -loglevel quiet' % (video_name, video_name, video_name)
     vamerge = subprocess.Popen(command, shell=True)
     vamerge.wait()
-    # print("视频合成结束：%s" % video_name)
 
 
 # 定义主函数
@@ -128,12 +126,12 @@ def main():
         Ps: only show the first AV or BV, donot include '?p=':\n''')
     urls = pq(url)
     for each in urls:
-        single_data(each)  # 调用single_data函数
+        single_data(each)
         time.sleep(1)
     thread_list = []
     for x in range(3):
         th = threading.Thread(
-            target=download)  # 调用download函数(进一步调用video_audio_merge子程序)
+            target=download)
         thread_list.append(th)
     for t in thread_list:
         t.setDaemon(True)
@@ -146,4 +144,4 @@ if __name__ == '__main__':
     main()
     for i in glob.glob("*_video.mp4"):
         os.remove(i)
-    print("视频音频下载并合成结束。")
+    # print("视频音频下载并合成结束。")
